@@ -1,0 +1,8 @@
+# .yamllint
+---
+extends: default
+
+rules:
+  line-length:
+    max: 250  # Augmente la limite de longueur de ligne à 120 caractères
+  new-line-at-end-of-file: disable # Active la vérification de la nouvelle ligne

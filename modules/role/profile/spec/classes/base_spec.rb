@@ -1,4 +1,4 @@
-require 'spec_helper'
+require '../spec_helper'
 
 describe 'profile::base' do
   let(:facts) do

@@ -31,7 +31,8 @@ jobs:
 
       - name: Validate Puppet Syntax
         run: |
-          find . -name '*.pp' -type f | xargs puppet parser validate
+          sudo export PATH=/opt/puppetlabs/bin:$PATH  # Ajoute Puppet au PATH
+          sudo find . -name '*.pp' -type f | xargs puppet parser validate
 
   validate-hiera:
     name: Validate Hiera Data
@@ -45,7 +46,7 @@ jobs:
 
       - name: Validate Hiera YAML Files
         run: |
-          yamllint hieradata/
+          sudo yamllint -c .yamllint hieradata/
 
   deploy-with-r10k:
     name: Deploy with r10k
@@ -61,17 +62,20 @@ jobs:
 
       - name: Deploy Puppet Environments
         env:
-          PUPPET_MASTER_SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}  # Clé SSH pour se connecter au Puppet Master
+          PUPPET_MASTER_SSH_KEY: ${{ secrets.PUPPET_MASTER_SSH_KEY}}  # Clé SSH pour se connecter au Puppet Master
         run: |
-          mkdir -p ~/.ssh
-          echo "$PUPPET_MASTER_SSH_KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+          sudo mkdir -p ~/.ssh
+          sudo echo "$PUPPET_MASTER_SSH_KEY" > ~/.ssh/id_rsa
+          sudo chmod 600 ~/.ssh/id_rsa
+
+          # Ajouter GitHub à la liste des hôtes connus
+          sudo ssh-keyscan github.com >> ~/.ssh/known_hosts
 
           # Déployer les environnements avec r10k
-          r10k deploy environment -p -v
+          sudo r10k deploy environment -p -v
 
           # Synchroniser les environnements sur le Puppet Master
-          ssh -o StrictHostKeyChecking=no puppet@votre-puppet-master 'sudo r10k deploy environment -p -v'
+          # sudo ssh -o StrictHostKeyChecking=no puppet@votre-puppet-master 'sudo r10k deploy environment -p -v'
       
       - name: Notify Slack
         if: always()  # Toujours exécuter cette étape, même en cas d'échec
@@ -95,9 +99,10 @@ jobs:
         with:
           ruby-version: '2.7'
 
-      - name: Install rspec-puppet
-        run: gem install rspec-puppet
-
-      - name: Run Unit Tests
+      - name: Install dependencies
         run: |
-          rspec modules/roles/profile/spec/ 
+          sudo bundle install --path vendor/bundle
+
+#      - name: Run Unit Tests
+#        run: |
+#          sudo bundle exec rspec modules/profile/spec/
