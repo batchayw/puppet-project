@@ -2,7 +2,7 @@
 ---
 sources:
   puppet:
-    remote: 'https://${{ secrets.GITHUB_TOKEN }}@github.com/batchayw/puppet-project.git'
+    remote: 'https://github.com/batchayw/puppet-project.git'
     basedir: '/etc/puppetlabs/code/environments'
     environments:
       - production
