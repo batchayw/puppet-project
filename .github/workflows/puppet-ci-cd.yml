@@ -56,6 +56,12 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
+      - name: Configure Git with Token
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --global url."https://$GITHUB_TOKEN@github.com/".insteadOf "https://github.com/"
+
       - name: Install r10k
         run: |
           sudo gem install r10k
@@ -64,18 +70,18 @@ jobs:
         env:
           PUPPET_MASTER_SSH_KEY: ${{ secrets.PUPPET_MASTER_SSH_KEY}}  # Clé SSH pour se connecter au Puppet Master
         run: |
-          mkdir -p ~/.ssh
-          echo "$PUPPET_MASTER_SSH_KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+          # mkdir -p ~/.ssh
+          # echo "$PUPPET_MASTER_SSH_KEY" > ~/.ssh/id_rsa
+          # chmod 600 ~/.ssh/id_rsa
 
           # Ajouter GitHub à la liste des hôtes connus
-          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          # ssh-keyscan github.com >> ~/.ssh/known_hosts
 
           # Vérifie l'accès SSH (sans arrêter la pipeline)
-          ssh -o StrictHostKeyChecking=no -T git@github.com 2>&1 | grep -q "successfully authenticated"
+          # ssh -o StrictHostKeyChecking=no -T git@github.com 2>&1 | grep -q "successfully authenticated"
 
           # Déployer les environnements avec r10k
-          sudo r10k deploy environment -p -v
+          sudo r10k deploy environment -p -v --verbose
 
           # Synchroniser les environnements sur le Puppet Master
           # sudo ssh -o StrictHostKeyChecking=no puppet@votre-puppet-master 'sudo r10k deploy environment -p -v'

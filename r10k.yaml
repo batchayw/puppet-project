@@ -2,7 +2,7 @@
 ---
 sources:
   puppet:
-    remote: 'git@github.com:batchayw/puppet-project.git'  # Penser a modifier en fonction de votre git user-utiliseur
-    basedir: '/home/runner/work/puppet-project/environments'
+    remote: 'https://${{ secrets.GITHUB_TOKEN }}@github.com/batchayw/puppet-project.git'
+    basedir: '/etc/puppetlabs/code/environments'
     environments:
       - production
