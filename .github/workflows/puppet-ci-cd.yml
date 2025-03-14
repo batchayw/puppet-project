@@ -1,0 +1,103 @@
+# .github/workflows/puppet-ci-cd.yml
+name: Puppet CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main  # Déclenche la pipeline sur les pushes vers la branche main
+  pull_request:
+    branches:
+      - main  # Déclenche la pipeline sur les pull requests vers la branche main
+
+jobs:
+  validate-puppet:
+    name: Validate Puppet Code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '2.7'  # Puppet nécessite Ruby
+
+      - name: Install Puppet
+        run: |
+          wget https://apt.puppet.com/puppet7-release-focal.deb
+          sudo dpkg -i puppet7-release-focal.deb
+          sudo apt-get update
+          sudo apt-get install -y puppet-agent
+
+      - name: Validate Puppet Syntax
+        run: |
+          find . -name '*.pp' -type f | xargs puppet parser validate
+
+  validate-hiera:
+    name: Validate Hiera Data
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Install yamllint
+        run: sudo apt-get install -y yamllint
+
+      - name: Validate Hiera YAML Files
+        run: |
+          yamllint hieradata/
+
+  deploy-with-r10k:
+    name: Deploy with r10k
+    runs-on: ubuntu-latest
+    needs: [validate-puppet, validate-hiera]  # Dépend des jobs de validation
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Install r10k
+        run: |
+          sudo gem install r10k
+
+      - name: Deploy Puppet Environments
+        env:
+          PUPPET_MASTER_SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}  # Clé SSH pour se connecter au Puppet Master
+        run: |
+          mkdir -p ~/.ssh
+          echo "$PUPPET_MASTER_SSH_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+          # Déployer les environnements avec r10k
+          r10k deploy environment -p -v
+
+          # Synchroniser les environnements sur le Puppet Master
+          ssh -o StrictHostKeyChecking=no puppet@votre-puppet-master 'sudo r10k deploy environment -p -v'
+      
+      - name: Notify Slack
+        if: always()  # Toujours exécuter cette étape, même en cas d'échec
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_CHANNEL: '#puppet'
+          SLACK_TITLE: 'Puppet CI/CD Pipeline'
+          SLACK_MESSAGE: 'Pipeline status: ${{ job.status }}'
+
+  test-puppet:
+    name: Run Puppet Unit Tests
+    runs-on: ubuntu-latest
+    needs: validate-puppet  # Dépend de la validation de la syntaxe
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '2.7'
+
+      - name: Install rspec-puppet
+        run: gem install rspec-puppet
+
+      - name: Run Unit Tests
+        run: |
+          rspec modules/roles/profile/spec/ 
