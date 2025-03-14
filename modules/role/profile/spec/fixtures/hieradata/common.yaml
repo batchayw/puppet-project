@@ -1,0 +1,9 @@
+# common.yaml
+---
+# Si tu veux utiliser un mot de passe, il faut le hasher avec SHA-512 (ex: mkpasswd -m sha-512 monmotdepasse)
+# profile::base::root_password: '$6$randomsalt$hashedpassword'
+profile::base::users:
+  - name: deploy
+    shell: '/bin/bash'
+    groups: ['devops']
+profile::base::ssh_port: 22
