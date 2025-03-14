@@ -67,25 +67,9 @@ jobs:
           sudo gem install r10k
 
       - name: Deploy Puppet Environments
-        env:
-          PUPPET_MASTER_SSH_KEY: ${{ secrets.PUPPET_MASTER_SSH_KEY}}  # Clé SSH pour se connecter au Puppet Master
         run: |
-          # mkdir -p ~/.ssh
-          # echo "$PUPPET_MASTER_SSH_KEY" > ~/.ssh/id_rsa
-          # chmod 600 ~/.ssh/id_rsa
-
-          # Ajouter GitHub à la liste des hôtes connus
-          # ssh-keyscan github.com >> ~/.ssh/known_hosts
-
-          # Vérifie l'accès SSH (sans arrêter la pipeline)
-          # ssh -o StrictHostKeyChecking=no -T git@github.com 2>&1 | grep -q "successfully authenticated"
-
-          # Déployer les environnements avec r10k
-          sudo r10k deploy environment -p -v --verbose
-
-          # Synchroniser les environnements sur le Puppet Master
-          # sudo ssh -o StrictHostKeyChecking=no puppet@votre-puppet-master 'sudo r10k deploy environment -p -v'
-      
+          sudo r10k deploy environment -p -v
+              
       - name: Notify Slack
         if: always()  # Toujours exécuter cette étape, même en cas d'échec
         uses: rtCamp/action-slack-notify@v2
