@@ -31,8 +31,8 @@ jobs:
 
       - name: Validate Puppet Syntax
         run: |
-          sudo export PATH=/opt/puppetlabs/bin:$PATH  # Ajoute Puppet au PATH
-          sudo find . -name '*.pp' -type f | xargs puppet parser validate
+          export PATH=/opt/puppetlabs/bin:$PATH  # Ajoute Puppet au PATH
+          find . -name '*.pp' -type f | xargs puppet parser validate
 
   validate-hiera:
     name: Validate Hiera Data
@@ -64,12 +64,12 @@ jobs:
         env:
           PUPPET_MASTER_SSH_KEY: ${{ secrets.PUPPET_MASTER_SSH_KEY}}  # Clé SSH pour se connecter au Puppet Master
         run: |
-          sudo mkdir -p ~/.ssh
-          sudo echo "$PUPPET_MASTER_SSH_KEY" > ~/.ssh/id_rsa
-          sudo chmod 600 ~/.ssh/id_rsa
+          mkdir -p ~/.ssh
+          echo "$PUPPET_MASTER_SSH_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
 
           # Ajouter GitHub à la liste des hôtes connus
-          sudo ssh-keyscan github.com >> ~/.ssh/known_hosts
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
 
           # Déployer les environnements avec r10k
           sudo r10k deploy environment -p -v
@@ -101,7 +101,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo bundle install --path vendor/bundle
+          bundle install --path vendor/bundle
 
 #      - name: Run Unit Tests
 #        run: |
