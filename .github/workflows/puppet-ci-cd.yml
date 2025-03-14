@@ -71,8 +71,8 @@ jobs:
           # Ajouter GitHub à la liste des hôtes connus
           ssh-keyscan github.com >> ~/.ssh/known_hosts
 
-          # Vérifie la connexion SSH
-          ssh -T git@github.com || exit 1
+          # Vérifie l'accès SSH (sans arrêter la pipeline)
+          ssh -o StrictHostKeyChecking=no -T git@github.com 2>&1 | grep -q "successfully authenticated"
 
           # Déployer les environnements avec r10k
           sudo r10k deploy environment -p -v
