@@ -5,4 +5,4 @@ sources:
     remote: 'git@github.com:batchayw/puppet-project.git'  # Penser a modifier en fonction de votre git user-utiliseur
     basedir: '/home/runner/work/puppet-project/environments'
     environments:
-      - main
+      - production
